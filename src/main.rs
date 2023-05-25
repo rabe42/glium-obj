@@ -10,6 +10,8 @@ mod teapot;
 
 fn main() {
 
+    env_logger::init();
+
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new();
     let cb = glutin::ContextBuilder::new()
@@ -51,6 +53,7 @@ fn run<T>(display: &Display,
                 return;
             },
             glutin::event::WindowEvent::KeyboardInput { input, .. } => {
+                log::debug!("KeyboardInput: {:?}", input);
                 if let Some(key_code) = input.virtual_keycode {
                     match key_code {
                         glutin::event::VirtualKeyCode::Escape => {
@@ -60,11 +63,10 @@ fn run<T>(display: &Display,
                         _ => return,
                     }
                 }
-                println!("KeyboardInput: {:?}", input);
                 return;
             },
             _ => {
-                println!("Some window event was detected: {:?}", event);
+                log::debug!("Some WindowEvent was detected: {:?}", event);
                 return;
             },
         },
