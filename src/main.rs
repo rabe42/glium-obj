@@ -46,6 +46,39 @@ fn run<T>(display: &Display,
         std::time::Duration::from_nanos(16_666_667);
     *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
+    handle_event(event, control_flow);
+
+    // The drawing part
+    let mut target = display.draw();
+    target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+
+    let model = model_matrix();
+    let view = view_matrix(&[3.0, 1.0, 1.0],
+                           &[-3.0, -1.0, 1.0],
+                           &[0.0, 1.0, 0.0]);
+    let (width, height) = target.get_dimensions();
+    let perspective = perspective_matrix(width, height);
+
+    let light = [1.4, 0.4, -0.7f32];
+
+    let params = glium::DrawParameters {
+        depth: glium::Depth {
+            test: glium::draw_parameters::DepthTest::IfLess,
+            write: true,
+            .. Default::default()
+        },
+        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
+        .. Default::default()
+    };
+
+    target.draw((positions, normals), indices, program,
+                &uniform! { model: model, view: view, perspective: perspective, u_light: light },
+                &params).unwrap();
+    target.finish().unwrap();
+}
+
+fn handle_event<T>(event: &Event<T>, control_flow: &mut ControlFlow)
+{
     match event {
         glutin::event::Event::WindowEvent { event, .. } => match event {
             glutin::event::WindowEvent::CloseRequested => {
@@ -79,34 +112,6 @@ fn run<T>(display: &Display,
         },
         _ => return,
     }
-
-    // The drawing part
-    let mut target = display.draw();
-    target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-
-    let model = model_matrix();
-    let view = view_matrix(&[3.0, 1.0, 1.0],
-                           &[-3.0, -1.0, 1.0],
-                           &[0.0, 1.0, 0.0]);
-    let (width, height) = target.get_dimensions();
-    let perspective = perspective_matrix(width, height);
-
-    let light = [1.4, 0.4, -0.7f32];
-
-    let params = glium::DrawParameters {
-        depth: glium::Depth {
-            test: glium::draw_parameters::DepthTest::IfLess,
-            write: true,
-            .. Default::default()
-        },
-        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
-        .. Default::default()
-    };
-
-    target.draw((positions, normals), indices, program,
-                &uniform! { model: model, view: view, perspective: perspective, u_light: light },
-                &params).unwrap();
-    target.finish().unwrap();
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
