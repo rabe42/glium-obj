@@ -1,12 +1,15 @@
 #[macro_use]
 extern crate glium;
 
+mod teapot;
+mod model;
+
 use glium::glutin::event::Event;
 use glium::glutin::event_loop::ControlFlow;
 use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
 use teapot::{Normal, Vertex};
 
-mod teapot;
+use model::Model;
 
 fn main() {
 
@@ -17,6 +20,8 @@ fn main() {
     let cb = glutin::ContextBuilder::new()
         .with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
+
+    let mut model = Model::new();
 
     let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
     let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
@@ -30,11 +35,12 @@ fn main() {
                                               None).unwrap();
 
     event_loop.run(move |event, _, control_flow| {
-        run(&display, &program, &positions, &normals, &indices, &event, control_flow);
+        run(&display, &mut model, &program, &positions, &normals, &indices, &event, control_flow);
     });
 }
 
 fn run<T>(display: &Display,
+          model: &mut Model,
           program: &Program,
           positions: &VertexBuffer<Vertex>,
           normals: &VertexBuffer<Normal>,
@@ -43,19 +49,19 @@ fn run<T>(display: &Display,
           control_flow: &mut ControlFlow)
 {
     let next_frame_time = std::time::Instant::now() +
-        std::time::Duration::from_nanos(16_666_667);
+        std::time::Duration::from_nanos(100_000_000 / 30);
     *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_time);
 
-    handle_event(event, control_flow);
+    handle_event(event, model, control_flow);
 
     // The drawing part
     let mut target = display.draw();
     target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-    let model = model_matrix();
-    let view = view_matrix(&[3.0, 1.0, 1.0],
-                           &[-3.0, -1.0, 1.0],
-                           &[0.0, 1.0, 0.0]);
+    let model_matrix = model_matrix();
+    let view = view_matrix(&model.view_position,
+                           &model.view_direction,
+                           &model.up);
     let (width, height) = target.get_dimensions();
     let perspective = perspective_matrix(width, height);
 
@@ -72,12 +78,12 @@ fn run<T>(display: &Display,
     };
 
     target.draw((positions, normals), indices, program,
-                &uniform! { model: model, view: view, perspective: perspective, u_light: light },
+                &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
                 &params).unwrap();
     target.finish().unwrap();
 }
 
-fn handle_event<T>(event: &Event<T>, control_flow: &mut ControlFlow)
+fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut ControlFlow)
 {
     match event {
         glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -92,7 +98,19 @@ fn handle_event<T>(event: &Event<T>, control_flow: &mut ControlFlow)
                         glutin::event::VirtualKeyCode::Escape => {
                             *control_flow = glutin::event_loop::ControlFlow::Exit;
                             return;
-                        }
+                        },
+                        glutin::event::VirtualKeyCode::Key5 => {
+                            if input.state == glutin::event::ElementState::Pressed {
+                                model.reset_view();
+                            }
+                            return;
+                        },
+                        glutin::event::VirtualKeyCode::Key8 => {
+                            if input.state == glutin::event::ElementState::Pressed {
+                                model.view_position_up();
+                            }
+                            return;
+                        },
                         _ => return,
                     }
                 }
