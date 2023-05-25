@@ -44,18 +44,12 @@ fn main() {
             _ => return,
         }
 
+        // The drawing part
         let mut target = display.draw();
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-        let model = [
-            [0.01, 0.0, 0.0, 0.0],
-            [0.0, 0.01, 0.0, 0.0],
-            [0.0, 0.0, 0.01, 0.0],
-            [0.0, 0.0, 2.0, 1.0f32]
-        ];
-
+        let model = model_matrix();
         let view = view_matrix(&[2.0, 1.0, 1.0], &[-2.0, -1.0, 1.0], &[0.0, 1.0, 0.0]);
-
         let (width, height) = target.get_dimensions();
         let perspective = perspective_matrix(width, height);
 
@@ -78,6 +72,15 @@ fn main() {
     });
 }
 
+fn model_matrix() -> [[f32; 4]; 4]
+{
+    [
+        [0.01, 0.0, 0.0, 0.0],
+        [0.0, 0.01, 0.0, 0.0],
+        [0.0, 0.0, 0.01, 0.0],
+        [0.0, 0.0, 2.0, 1.0f32]
+    ]
+}
 
 fn perspective_matrix(width: u32, height: u32) -> [[f32; 4]; 4]
 {
