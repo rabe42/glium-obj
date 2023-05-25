@@ -1,9 +1,8 @@
-use glium::glutin::event::Event;
-use glium::glutin::event_loop::ControlFlow;
-
 #[macro_use]
 extern crate glium;
 
+use glium::glutin::event::Event;
+use glium::glutin::event_loop::ControlFlow;
 use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
 use teapot::{Normal, Vertex};
 
@@ -51,9 +50,27 @@ fn run<T>(display: &Display,
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 return;
             },
-            _ => return,
+            glutin::event::WindowEvent::KeyboardInput { input, .. } => {
+                if let Some(key_code) = input.virtual_keycode {
+                    match key_code {
+                        glutin::event::VirtualKeyCode::Escape => {
+                            *control_flow = glutin::event_loop::ControlFlow::Exit;
+                            return;
+                        }
+                        _ => return,
+                    }
+                }
+                println!("KeyboardInput: {:?}", input);
+                return;
+            },
+            _ => {
+                println!("Some window event was detected: {:?}", event);
+                return;
+            },
         },
         glutin::event::Event::NewEvents(cause) => match cause {
+            // TODO: Eigentlich sollten wir nur in diesem Falle die Kalkulation von Bewegung
+            // (Kamera oder Objekt) durchführen.
             glutin::event::StartCause::ResumeTimeReached { .. } => (),
             glutin::event::StartCause::Init => (),
             _ => return,
