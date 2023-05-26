@@ -117,32 +117,29 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
     use glutin::event::VirtualKeyCode;
     use glutin::event::ElementState;
 
+    let key_code = if let Some(key_code) = input.virtual_keycode {
+        key_code
+    } else {
+        log::warn!("[main::handle_keyboard_event()] Key without key_code pressed or released!");
+        return;
+    };
+
     match input.state {
         glutin::event::ElementState::Pressed =>
-            if let Some(key_code) = input.virtual_keycode {
-                match key_code {
-                    VirtualKeyCode::Key2 => model.view_position_down(),
-                    VirtualKeyCode::Key5 => model.reset_view(),
-                    VirtualKeyCode::Key8 => model.view_position_up(),
-                    VirtualKeyCode::Up => model.view_position_forward(),
-                    VirtualKeyCode::Down => model.view_position_backward(),
-                    _ => {}
-                }
+            match key_code {
+                VirtualKeyCode::Key2 => model.view_position_down(),
+                VirtualKeyCode::Key5 => model.reset_view(),
+                VirtualKeyCode::Key8 => model.view_position_up(),
+                VirtualKeyCode::Up => model.view_position_forward(),
+                VirtualKeyCode::Down => model.view_position_backward(),
+                _ => {}
             }
-            else {
-                log::warn!("[main::handle_keyboard_event()] Key without key_code pressed!");
-            },
 
         ElementState::Released =>
-            if let Some(key_code) = input.virtual_keycode {
-                match key_code {
-                    VirtualKeyCode::Escape => *control_flow = glutin::event_loop::ControlFlow::Exit,
-                    _ => {},
-                }
+            match key_code {
+                VirtualKeyCode::Escape => *control_flow = glutin::event_loop::ControlFlow::Exit,
+                _ => {},
             }
-            else {
-                log::warn!("[main::handle_keyboard_event()] Key without key_code released!");
-            },
     }
 }
 
