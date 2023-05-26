@@ -4,7 +4,7 @@ extern crate glium;
 mod teapot;
 mod model;
 
-use glium::glutin::event::Event;
+use glium::glutin::event::{Event, KeyboardInput};
 use glium::glutin::event_loop::ControlFlow;
 use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
 use teapot::{Normal, Vertex};
@@ -93,27 +93,7 @@ fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut Contr
             },
             glutin::event::WindowEvent::KeyboardInput { input, .. } => {
                 log::debug!("KeyboardInput: {:?}", input);
-                if let Some(key_code) = input.virtual_keycode {
-                    match key_code {
-                        glutin::event::VirtualKeyCode::Escape => {
-                            *control_flow = glutin::event_loop::ControlFlow::Exit;
-                            return;
-                        },
-                        glutin::event::VirtualKeyCode::Key5 => {
-                            if input.state == glutin::event::ElementState::Pressed {
-                                model.reset_view();
-                            }
-                            return;
-                        },
-                        glutin::event::VirtualKeyCode::Key8 => {
-                            if input.state == glutin::event::ElementState::Pressed {
-                                model.view_position_up();
-                            }
-                            return;
-                        },
-                        _ => return,
-                    }
-                }
+                handle_keyboard_event(control_flow, model, input);
                 return;
             },
             _ => {
@@ -129,6 +109,40 @@ fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut Contr
             _ => return,
         },
         _ => return,
+    }
+}
+
+fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, input: &KeyboardInput)
+{
+    use glutin::event::VirtualKeyCode;
+    use glutin::event::ElementState;
+
+    match input.state {
+        glutin::event::ElementState::Pressed =>
+            if let Some(key_code) = input.virtual_keycode {
+                match key_code {
+                    VirtualKeyCode::Key2 => model.view_position_down(),
+                    VirtualKeyCode::Key5 => model.reset_view(),
+                    VirtualKeyCode::Key8 => model.view_position_up(),
+                    VirtualKeyCode::Up => model.view_position_forward(),
+                    VirtualKeyCode::Down => model.view_position_backward(),
+                    _ => {}
+                }
+            }
+            else {
+                log::warn!("[main::handle_keyboard_event()] Key without key_code pressed!");
+            },
+
+        ElementState::Released =>
+            if let Some(key_code) = input.virtual_keycode {
+                match key_code {
+                    VirtualKeyCode::Escape => *control_flow = glutin::event_loop::ControlFlow::Exit,
+                    _ => {},
+                }
+            }
+            else {
+                log::warn!("[main::handle_keyboard_event()] Key without key_code released!");
+            },
     }
 }
 
