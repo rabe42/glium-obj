@@ -40,4 +40,12 @@ impl Model {
     pub fn view_position_backward(&mut self) {
         self.view_position[0] += 0.2;
     }
+
+    pub fn view_position_left(&mut self) {
+        self.view_position[2] += 0.2;
+    }
+
+    pub fn view_position_right(&mut self) {
+        self.view_position[2] -= 0.2;
+    }
 }

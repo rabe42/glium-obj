@@ -130,6 +130,8 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
                 VirtualKeyCode::Key2 => model.view_position_down(),
                 VirtualKeyCode::Key5 => model.reset_view(),
                 VirtualKeyCode::Key8 => model.view_position_up(),
+                VirtualKeyCode::Key4 => model.view_position_left(),
+                VirtualKeyCode::Key6 => model.view_position_right(),
                 VirtualKeyCode::Up => model.view_position_forward(),
                 VirtualKeyCode::Down => model.view_position_backward(),
                 _ => {}
