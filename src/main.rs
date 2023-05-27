@@ -58,7 +58,7 @@ fn run<T>(display: &Display,
     let mut target = display.draw();
     target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-    let model_matrix = model_matrix();
+    let model_matrix = model_matrix(model.theta);
     let view = view_matrix(&model.view_position,
                            &model.view_direction,
                            &model.up);
@@ -132,8 +132,10 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
                 VirtualKeyCode::Key8 => model.view_position_up(),
                 VirtualKeyCode::Key4 => model.view_position_left(),
                 VirtualKeyCode::Key6 => model.view_position_right(),
-                VirtualKeyCode::Up => model.view_position_forward(),
-                VirtualKeyCode::Down => model.view_position_backward(),
+                VirtualKeyCode::Key9 => model.view_position_forward(),
+                VirtualKeyCode::Key3 => model.view_position_backward(),
+                VirtualKeyCode::Left => model.rotate_left(),
+                VirtualKeyCode::Right => model.rotate_right(),
                 _ => {}
             }
 
@@ -146,13 +148,14 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
-fn model_matrix() -> [[f32; 4]; 4]
+fn model_matrix(theta: f32) -> [[f32; 4]; 4]
 {
+    // TODO: The rotation must go here!
     [
-        [0.01, 0.0, 0.0, 0.0],
-        [0.0, 0.01, 0.0, 0.0],
-        [0.0, 0.0, 0.01, 0.0],
-        [0.0, 0.0, 2.0, 1.0f32]
+        [ theta.cos() * 0.01, theta.sin() * 0.01,  0.0, 0.0],
+        [-theta.sin() * 0.01, theta.cos() * 0.01,  0.0, 0.0],
+        [                0.0,                0.0, 0.01, 0.0],
+        [                0.0,                0.0,  2.0, 1.0f32]
     ]
 }
 
@@ -161,17 +164,17 @@ fn perspective_matrix(width: u32, height: u32) -> [[f32; 4]; 4]
 {
     let aspect_ratio = height as f32 / width as f32;
 
-    let fov: f32 = 3.141592 / 3.0;
+    let fov: f32 = std::f32::consts::PI / 3.0;
     let zfar = 1024.0;
     let znear = 0.1;
 
     let f = 1.0 / (fov / 2.0).tan();
 
     [
-        [f *   aspect_ratio   ,    0.0,              0.0              ,   0.0],
-        [         0.0         ,     f ,              0.0              ,   0.0],
-        [         0.0         ,    0.0,  (zfar+znear)/(zfar-znear)    ,   1.0],
-        [         0.0         ,    0.0, -(2.0*zfar*znear)/(zfar-znear),   0.0],
+        [f * aspect_ratio,    0.0,              0.0              ,   0.0],
+        [       0.0      ,     f ,              0.0              ,   0.0],
+        [       0.0      ,    0.0,  (zfar+znear)/(zfar-znear)    ,   1.0],
+        [       0.0      ,    0.0, -(2.0*zfar*znear)/(zfar-znear),   0.0],
     ]
 }
 
