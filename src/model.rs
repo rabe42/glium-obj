@@ -1,11 +1,14 @@
-
+/// The vertical increment
 const VERTICAL_INCR: f32 = 0.1;
-const ROTATION_INCR: f32 = std::f32::consts::PI / 10.0;
+
+// The increment, we allow to rotate the object in RAD.
+const ROTATION_INCR: f32 = std::f32::consts::PI / 20.0;
 
 /// This model manages the different system states, which will be manipulated by the controller.
 /// It starts with the camara but must also contain information regarding the orientation of the
 /// graphic model, under investigation..
 pub struct Model {
+    pub scaling_factor: f32,
     pub theta: f32,
     pub view_position: [f32; 3],
     pub view_direction: [f32; 3],
@@ -15,11 +18,12 @@ pub struct Model {
 impl Model {
     /// Creates a new model with a reset on the coordinates.
     pub fn new() -> Self {
+        let scaling_factor = 0.01;
         let theta = 0.0;
         let view_position = [3.0, 1.0, 1.0];
         let view_direction = [-3.0, -1.0, 1.0];
         let up = [0.0, 1.0, 0.0];
-        Self { theta, view_position, view_direction, up }
+        Self { scaling_factor, theta, view_position, view_direction, up }
     }
 
     pub fn reset_view(&mut self) {
@@ -53,10 +57,10 @@ impl Model {
     }
 
     pub fn rotate_left(&mut self) {
-        self.theta += ROTATION_INCR;
+        self.theta -= ROTATION_INCR;
     }
 
     pub fn rotate_right(&mut self) {
-        self.theta -= ROTATION_INCR;
+        self.theta += ROTATION_INCR;
     }
 }

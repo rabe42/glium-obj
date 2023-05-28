@@ -6,7 +6,7 @@ mod model;
 
 use glium::glutin::event::{Event, KeyboardInput};
 use glium::glutin::event_loop::ControlFlow;
-use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
+use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program, Frame};
 use teapot::{Normal, Vertex};
 
 use model::Model;
@@ -56,30 +56,7 @@ fn run<T>(display: &Display,
 
     // The drawing part
     let mut target = display.draw();
-    target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-
-    let model_matrix = model_matrix(model.theta);
-    let view = view_matrix(&model.view_position,
-                           &model.view_direction,
-                           &model.up);
-    let (width, height) = target.get_dimensions();
-    let perspective = perspective_matrix(width, height);
-
-    let light = [1.4, 0.4, -0.7f32];
-
-    let params = glium::DrawParameters {
-        depth: glium::Depth {
-            test: glium::draw_parameters::DepthTest::IfLess,
-            write: true,
-            .. Default::default()
-        },
-        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
-        .. Default::default()
-    };
-
-    target.draw((positions, normals), indices, program,
-                &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
-                &params).unwrap();
+    draw(model, &mut target, program, positions, normals, indices);
     target.finish().unwrap();
 }
 
@@ -147,15 +124,55 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
     }
 }
 
-/// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
-fn model_matrix(theta: f32) -> [[f32; 4]; 4]
+fn draw(model: &Model,
+        target: &mut Frame,
+        program: &Program,
+        positions: &VertexBuffer<Vertex>,
+        normals: &VertexBuffer<Normal>,
+        indices: &IndexBuffer<u16>)
 {
-    // TODO: The rotation must go here!
+    target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+
+    let model_matrix = model_matrix(model.theta, model.scaling_factor);
+    let view = view_matrix(&model.view_position,
+                           &model.view_direction,
+                           &model.up);
+    let (width, height) = target.get_dimensions();
+    let perspective = perspective_matrix(width, height);
+
+    let light = [1.4, 0.4, -0.7f32];
+
+    let params = glium::DrawParameters {
+        depth: glium::Depth {
+            test: glium::draw_parameters::DepthTest::IfLess,
+            write: true,
+            .. Default::default()
+        },
+        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
+        .. Default::default()
+    };
+
+    target.draw((positions, normals), indices, program,
+                &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
+                &params).unwrap();
+    // target.finish().unwrap();
+}
+
+/// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
+fn model_matrix(theta: f32, sf: f32) -> [[f32; 4]; 4]
+{
+    // Rotate around Z-Axis
+    // [
+    //     [ theta.cos() * 0.01, theta.sin() * 0.01,  0.0, 0.0],
+    //     [-theta.sin() * 0.01, theta.cos() * 0.01,  0.0, 0.0],
+    //     [                0.0,                0.0, 0.01, 0.0],
+    //     [                0.0,                0.0,  2.0, 1.0f32]
+    // ]
     [
-        [ theta.cos() * 0.01, theta.sin() * 0.01,  0.0, 0.0],
-        [-theta.sin() * 0.01, theta.cos() * 0.01,  0.0, 0.0],
-        [                0.0,                0.0, 0.01, 0.0],
-        [                0.0,                0.0,  2.0, 1.0f32]
+        [ theta.cos() * sf, 0.0, theta.sin() * sf, 0.0],
+        [ 0.0, sf, 0.0, 0.0],
+        [-theta.sin() * sf, 0.0, theta.cos() * sf, 0.0],
+        [ 0.0, 0.0, 2.0, 1.0f32],
     ]
 }
 
