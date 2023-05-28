@@ -6,7 +6,7 @@ mod model;
 
 use glium::glutin::event::{Event, KeyboardInput};
 use glium::glutin::event_loop::ControlFlow;
-use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program, Frame};
+use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
 use teapot::{Normal, Vertex};
 
 use model::Model;
@@ -55,9 +55,7 @@ fn run<T>(display: &Display,
     handle_event(event, model, control_flow);
 
     // The drawing part
-    let mut target = display.draw();
-    draw(model, &mut target, program, positions, normals, indices);
-    target.finish().unwrap();
+    draw(model, display, program, positions, normals, indices);
 }
 
 fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut ControlFlow)
@@ -125,12 +123,13 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
 }
 
 fn draw(model: &Model,
-        target: &mut Frame,
+        display: &Display,
         program: &Program,
         positions: &VertexBuffer<Vertex>,
         normals: &VertexBuffer<Normal>,
         indices: &IndexBuffer<u16>)
 {
+    let mut target = display.draw();
     target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
     let model_matrix = model_matrix(model.theta, model.scaling_factor);
@@ -155,7 +154,7 @@ fn draw(model: &Model,
     target.draw((positions, normals), indices, program,
                 &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
                 &params).unwrap();
-    // target.finish().unwrap();
+    target.finish().unwrap();
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
