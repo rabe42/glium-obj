@@ -1,8 +1,13 @@
+use crate::teapot;
+
 /// The vertical increment
 const VERTICAL_INCR: f32 = 0.1;
 
 // The increment, we allow to rotate the object in RAD.
 const ROTATION_INCR: f32 = std::f32::consts::PI / 20.0;
+
+pub type Vertex = teapot::Vertex;
+pub type Normal = teapot::Normal;
 
 /// This model manages the different system states, which will be manipulated by the controller.
 /// It starts with the camara but must also contain information regarding the orientation of the
@@ -24,6 +29,18 @@ impl Model {
         let view_direction = [-3.0, -1.0, 1.0];
         let up = [0.0, 1.0, 0.0];
         Self { scaling_factor, theta, view_position, view_direction, up }
+    }
+
+    pub fn get_vertices(&self) -> &[Vertex] {
+        &teapot::VERTICES
+    }
+
+    pub fn get_normals(&self) -> &[Normal] {
+        &teapot::NORMALS
+    }
+
+    pub fn get_indices(&self) -> &[u16] {
+        &teapot::INDICES
     }
 
     pub fn reset_view(&mut self) {

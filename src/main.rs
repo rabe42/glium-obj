@@ -4,12 +4,11 @@ extern crate glium;
 mod teapot;
 mod model;
 
+use model::{Model, Normal, Vertex};
+
 use glium::glutin::event::{Event, KeyboardInput};
 use glium::glutin::event_loop::ControlFlow;
 use glium::{glutin, Surface, Display, IndexBuffer, VertexBuffer, Program};
-use teapot::{Normal, Vertex};
-
-use model::Model;
 
 fn main() {
 
@@ -23,10 +22,10 @@ fn main() {
 
     let mut model = Model::new();
 
-    let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
-    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
+    let positions = glium::VertexBuffer::new(&display, model.get_vertices()).unwrap();
+    let normals = glium::VertexBuffer::new(&display, model.get_normals()).unwrap();
     let indices = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TrianglesList,
-                                          &teapot::INDICES).unwrap();
+                                          model.get_indices()).unwrap();
 
     let vertex_shader_src = include_str!("teapot.vertex.glsl");
     let fragment_shader_src = include_str!("teapot.fragment.glsl");
