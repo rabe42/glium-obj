@@ -1,5 +1,6 @@
 use crate::model::{Model, Normal, Vertex};
 use glium::{Display, IndexBuffer, Program, Surface, VertexBuffer};
+use nalgebra::Matrix4;
 
 pub struct View {
     positions: VertexBuffer<Vertex>,
@@ -26,7 +27,7 @@ impl View {
         let mut target = display.draw();
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-        let model_matrix = model_matrix(model.theta, model.scaling_factor);
+        let model_matrix = model_matrix(&model.rot, model.scaling_factor);
         let view = view_matrix(&model.view_position,
                                &model.view_direction,
                                &model.up);
@@ -56,21 +57,12 @@ impl View {
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
-fn model_matrix(theta: f32, sf: f32) -> [[f32; 4]; 4]
+fn model_matrix(rot: &[f32], sf: f32) -> [[f32; 4]; 4]
 {
-    // Rotate around Z-Axis
-    // [
-    //     [ theta.cos() * 0.01, theta.sin() * 0.01,  0.0, 0.0],
-    //     [-theta.sin() * 0.01, theta.cos() * 0.01,  0.0, 0.0],
-    //     [                0.0,                0.0, 0.01, 0.0],
-    //     [                0.0,                0.0,  2.0, 1.0f32]
-    // ]
-    [
-        [ theta.cos() * sf, 0.0, theta.sin() * sf, 0.0],
-        [ 0.0, sf, 0.0, 0.0],
-        [-theta.sin() * sf, 0.0, theta.cos() * sf, 0.0],
-        [ 0.0, 0.0, 2.0, 1.0f32],
-    ]
+    let mut final_matrix = Matrix4::from_euler_angles(rot[0], rot[1], rot[2]).append_scaling(sf);
+    final_matrix[(2, 3)] = 2.0;
+    log::trace!("The final matrix is: {final_matrix}");
+    final_matrix.into()
 }
 
 /// Giving all this a nice perspective.

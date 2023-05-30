@@ -97,8 +97,12 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
                 VirtualKeyCode::Key6 => model.view_position_right(),
                 VirtualKeyCode::Key9 => model.view_position_forward(),
                 VirtualKeyCode::Key3 => model.view_position_backward(),
-                VirtualKeyCode::Left => model.rotate_left(),
-                VirtualKeyCode::Right => model.rotate_right(),
+                VirtualKeyCode::A => model.rotate_left(),
+                VirtualKeyCode::D => model.rotate_right(),
+                VirtualKeyCode::W => model.rotate_up(),
+                VirtualKeyCode::S => model.rotate_down(),
+                VirtualKeyCode::Q => model.roll_up(),
+                VirtualKeyCode::E => model.roll_down(),
                 _ => {}
             }
 
