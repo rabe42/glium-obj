@@ -17,12 +17,13 @@ fn main() {
     env_logger::init();
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    let wb = glutin::window::WindowBuilder::new();
+    let wb = glutin::window::WindowBuilder::new()
+        .with_title("Obj viewer based on obj-rs");
     let cb = glutin::ContextBuilder::new()
         .with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
-    let mut model = Model::new();
+    let mut model = Model::new("shapes/box.obj");
     let view = View::new(&display, &model);
 
     event_loop.run(move |event, _, control_flow| {

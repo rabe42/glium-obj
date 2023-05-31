@@ -1,26 +1,24 @@
-use crate::model::{Model, Normal, Vertex};
+use crate::model::{Model, Vertex};
 use glium::{Display, IndexBuffer, Program, Surface, VertexBuffer};
 use nalgebra::Matrix4;
 
 pub struct View {
     positions: VertexBuffer<Vertex>,
-    normals: VertexBuffer<Normal>,
     indices: IndexBuffer<u16>,
     program: Program,
 }
 impl View {
-    pub fn new(display: &Display, model: &Model) -> Self {
-        let positions = glium::VertexBuffer::new(display, model.get_vertices()).unwrap();
-        let normals = glium::VertexBuffer::new(display, model.get_normals()).unwrap();
-        let indices = glium::IndexBuffer::new(display, glium::index::PrimitiveType::TrianglesList,
-                                              model.get_indices()).unwrap();
+    pub fn new(display: &Display, model: &Model) -> Self
+    {
+        let positions = model.object.vertex_buffer(display).unwrap();
+        let indices = model.object.index_buffer(display).unwrap();
 
         let vertex_shader_src = include_str!("teapot.vertex.glsl");
         let fragment_shader_src = include_str!("teapot.fragment.glsl");
 
         let program = glium::Program::from_source(display, vertex_shader_src, fragment_shader_src,
                                                   None).unwrap();
-        Self { positions, normals, indices, program }
+        Self { positions, indices, program }
     }
 
     pub fn draw(&self, display: &Display, model: &Model) {
@@ -47,7 +45,7 @@ impl View {
                 .. Default::default()
             };
 
-            target.draw((&self.positions, &self.normals),
+            target.draw(&self.positions,
                         &self.indices,
                         &self.program,
                         &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },

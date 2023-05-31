@@ -1,5 +1,5 @@
 [package]
-name = "glium-teapot"
+name = "glium-obj"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,4 @@ glium = "*"
 log = "*"
 env_logger = "*"
 nalgebra = "*"
+obj-rs = { version="*", features=["glium"] }

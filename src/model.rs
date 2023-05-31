@@ -1,4 +1,4 @@
-use crate::teapot;
+use obj::Obj;
 
 /// The vertical increment
 const VERTICAL_INCR: f32 = 0.1;
@@ -6,14 +6,14 @@ const VERTICAL_INCR: f32 = 0.1;
 // The increment, we allow to rotate the object in RAD.
 const ROTATION_INCR: f32 = std::f32::consts::PI / 20.0;
 
-pub type Vertex = teapot::Vertex;
-pub type Normal = teapot::Normal;
+pub type Vertex = obj::Vertex;
 
 /// This model manages the different system states, which will be manipulated by the controller.
 /// It starts with the camara but must also contain information regarding the orientation of the
 /// graphic model, under investigation..
 pub struct Model {
     changed: bool,
+    pub object: Obj,
     pub scaling_factor: f32,
     pub rot: [f32; 3],
     pub view_position: [f32; 3],
@@ -23,13 +23,15 @@ pub struct Model {
 }
 impl Model {
     /// Creates a new model with a reset on the coordinates.
-    pub fn new() -> Self {
-        let scaling_factor = 0.01;
+    pub fn new(file_name: &str) -> Self {
+        let scaling_factor = 1.0;
         let rot = [0.0, 0.0, 0.0];
         let view_position = [3.0, 1.0, 1.0];
         let view_direction = [-3.0, -1.0, 1.0];
         let up = [0.0, 1.0, 0.0];
-        Self { changed: true, scaling_factor, rot, view_position, view_direction, up }
+        let input = std::fs::read(file_name).unwrap();
+        let object = obj::load_obj(input.as_slice()).unwrap();
+        Self { changed: true, object, scaling_factor, rot, view_position, view_direction, up }
     }
 
     pub fn reset_changed(&mut self) {
@@ -38,22 +40,6 @@ impl Model {
 
     pub fn has_changed(&self) -> bool {
         self.changed
-    }
-
-    /// Provides the access to the vertices of the model. Right now this is just a wraper over the
-    /// static teapot model, But this will change, as soon as we read the obj-files.
-    pub fn get_vertices(&self) -> &[Vertex] {
-        &teapot::VERTICES
-    }
-
-    /// Provides access to the normals.
-    pub fn get_normals(&self) -> &[Normal] {
-        &teapot::NORMALS
-    }
-
-    /// Provides access to the indices of the triangles, creating the surfaces of the object.
-    pub fn get_indices(&self) -> &[u16] {
-        &teapot::INDICES
     }
 
     /// Resets the viewers position to the original.
