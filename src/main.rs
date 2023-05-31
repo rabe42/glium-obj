@@ -16,6 +16,8 @@ fn main() {
 
     env_logger::init();
 
+    let obj_file_name = std::env::args().nth(1).expect("No object file provied");
+
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new()
         .with_title("Obj viewer based on obj-rs");
@@ -23,7 +25,7 @@ fn main() {
         .with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
-    let mut model = Model::new("shapes/box.obj");
+    let mut model = Model::new(&obj_file_name);
     let view = View::new(&display, &model);
 
     event_loop.run(move |event, _, control_flow| {
