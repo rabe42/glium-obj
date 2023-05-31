@@ -23,15 +23,15 @@ pub struct Model {
 }
 impl Model {
     /// Creates a new model with a reset on the coordinates.
-    pub fn new(file_name: &str) -> Self {
+    pub fn new(file_name: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let scaling_factor = 1.0;
         let rot = [0.0, 0.0, 0.0];
         let view_position = [3.0, 1.0, 1.0];
         let view_direction = [-3.0, -1.0, 1.0];
         let up = [0.0, 1.0, 0.0];
-        let input = std::fs::read(file_name).unwrap();
-        let object = obj::load_obj(input.as_slice()).unwrap();
-        Self { changed: true, object, scaling_factor, rot, view_position, view_direction, up }
+        let input = std::fs::read(file_name)?;
+        let object = obj::load_obj(input.as_slice())?;
+        Ok(Self { changed: true, object, scaling_factor, rot, view_position, view_direction, up })
     }
 
     pub fn reset_changed(&mut self) {
