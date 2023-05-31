@@ -24,34 +24,36 @@ impl View {
     }
 
     pub fn draw(&self, display: &Display, model: &Model) {
-        let mut target = display.draw();
-        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+        if model.has_changed() {
+            let mut target = display.draw();
+            target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-        let model_matrix = model_matrix(&model.rot, model.scaling_factor);
-        let view = view_matrix(&model.view_position,
-                               &model.view_direction,
-                               &model.up);
-        let (width, height) = target.get_dimensions();
-        let perspective = perspective_matrix(width, height);
+            let model_matrix = model_matrix(&model.rot, model.scaling_factor);
+            let view = view_matrix(&model.view_position,
+                                   &model.view_direction,
+                                   &model.up);
+            let (width, height) = target.get_dimensions();
+            let perspective = perspective_matrix(width, height);
 
-        let light = [1.4, 0.4, -0.7f32];
+            let light = [1.4, 0.4, -0.7f32];
 
-        let params = glium::DrawParameters {
-            depth: glium::Depth {
-                test: glium::draw_parameters::DepthTest::IfLess,
-                write: true,
+            let params = glium::DrawParameters {
+                depth: glium::Depth {
+                    test: glium::draw_parameters::DepthTest::IfLess,
+                    write: true,
+                    .. Default::default()
+                },
+                //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
                 .. Default::default()
-            },
-            //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
-            .. Default::default()
-        };
+            };
 
-        target.draw((&self.positions, &self.normals),
-                    &self.indices,
-                    &self.program,
-                    &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
-                    &params).unwrap();
-        target.finish().unwrap();
+            target.draw((&self.positions, &self.normals),
+                        &self.indices,
+                        &self.program,
+                        &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
+                        &params).unwrap();
+            target.finish().unwrap();
+        }
     }
 
 }

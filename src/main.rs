@@ -30,6 +30,8 @@ fn main() {
     });
 }
 
+/// This is the central controller of the application. It receives all user input, distributes this
+/// to the model and controls the update of the view.
 fn run<T>(display: &Display,
           model: &mut Model,
           view: &View,
@@ -44,17 +46,22 @@ fn run<T>(display: &Display,
 
     // The drawing part
     view.draw(display, model);
+
+    // In cases, that there is more than one view, we should reset the changes here. For more
+    // complex systems, we have to establish an observer pattern.
+    model.reset_changed();
 }
 
 fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut ControlFlow)
 {
+    use glutin::event::WindowEvent;
     match event {
-        glutin::event::Event::WindowEvent { event, .. } => match event {
+        Event::WindowEvent { event, .. } => match event {
             glutin::event::WindowEvent::CloseRequested => {
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 return;
             },
-            glutin::event::WindowEvent::KeyboardInput { input, .. } => {
+            WindowEvent::KeyboardInput { input, .. } => {
                 log::debug!("KeyboardInput: {:?}", input);
                 handle_keyboard_event(control_flow, model, input);
                 return;
@@ -64,9 +71,7 @@ fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut Contr
                 return;
             },
         },
-        glutin::event::Event::NewEvents(cause) => match cause {
-            // TODO: Eigentlich sollten wir nur in diesem Falle die Kalkulation von Bewegung
-            // (Kamera oder Objekt) durchführen.
+        Event::NewEvents(cause) => match cause {
             glutin::event::StartCause::ResumeTimeReached { .. } => (),
             glutin::event::StartCause::Init => (),
             _ => return,
@@ -88,7 +93,7 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
     };
 
     match input.state {
-        glutin::event::ElementState::Pressed =>
+        ElementState::Pressed =>
             match key_code {
                 VirtualKeyCode::Key2 => model.view_position_down(),
                 VirtualKeyCode::Key5 => model.reset_view(),
