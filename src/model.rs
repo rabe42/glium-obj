@@ -121,4 +121,14 @@ impl Model {
         self.rot[2] -= ROTATION_INCR;
         self.changed = true;
     }
+
+    pub fn scale_up(&mut self) {
+        self.scaling_factor *= 2.0;
+        self.changed = true;
+    }
+
+    pub fn scale_down(&mut self) {
+        self.scaling_factor /= 2.0;
+        self.changed = true;
+    }
 }

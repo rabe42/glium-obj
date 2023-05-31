@@ -109,6 +109,8 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
                 VirtualKeyCode::S => model.rotate_down(),
                 VirtualKeyCode::Q => model.roll_up(),
                 VirtualKeyCode::E => model.roll_down(),
+                VirtualKeyCode::Minus => model.scale_down(),
+                VirtualKeyCode::Equals => model.scale_up(),
                 _ => {}
             }
 
