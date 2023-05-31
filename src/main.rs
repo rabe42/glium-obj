@@ -12,6 +12,13 @@ use glium::glutin::event::{Event, KeyboardInput};
 use glium::glutin::event_loop::ControlFlow;
 use glium::{glutin, Display};
 
+/// This application expected one parameter on the command line, which must be the path to a
+/// wavefront obj file with triangulated surfaces. It loads this file and allows to manipulte it
+/// with the QWEASD-+ keys. The view point might be changed with the Numpad-Keys.
+///
+/// # Usage
+/// glutin-obj <obj-file-name>
+///
 fn main() {
 
     env_logger::init();
@@ -35,6 +42,14 @@ fn main() {
 
 /// This is the central controller of the application. It receives all user input, distributes this
 /// to the model and controls the update of the view.
+///
+/// # Arguments
+///
+/// * 'display' - The object, where we should render upon.
+/// * 'model' - The model of the application.
+/// * 'view' - The presentation of the model.
+/// * 'event' - The event, wich has to be processed now.
+/// * 'control_flow' - A glutin specific object, which is basically used to end the application.
 fn run<T>(display: &Display,
           model: &mut Model,
           view: &View,
@@ -55,6 +70,15 @@ fn run<T>(display: &Display,
     model.reset_changed();
 }
 
+/// Handles the events of the window manager and the devices, including keyboards.
+/// It must be understood, that keyboard input is typically provided in the context of the window
+/// and therefore a window event.
+///
+/// # Arguments
+///
+/// * 'event' - The device or windows event to be handled.
+/// * 'model' - The model, which can be modified by the events.
+/// * 'control_flow' - A glutin specific object, which is basically used to end the application.
 fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut ControlFlow)
 {
     use glutin::event::WindowEvent;
@@ -83,6 +107,14 @@ fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut Contr
     }
 }
 
+/// Handles only the keyboard events send to the application window.
+///
+/// # Arguments
+///
+/// * 'input' - The KeyboardInput structure of glutin. This provides access to the scan code and
+/// the key code of the event.
+/// * 'model' - The model, which can be modified by the events.
+/// * 'control_flow' - A glutin specific object, which is basically used to end the application.
 fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, input: &KeyboardInput)
 {
     use glutin::event::VirtualKeyCode;
