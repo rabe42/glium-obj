@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate glium;
 
-mod teapot;
 mod model;
 mod view;
 
