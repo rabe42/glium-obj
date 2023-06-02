@@ -1,9 +1,15 @@
 [package]
 name = "glium-obj"
+authors = ["Dr. Ralf Berger"]
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[profile.release]
+strip = true            # Strip symbols from the result
+lto = true              # Link time optimizations
+opt-level = "z"         # Optimize for size
+codegen-units = 1       # Reduce Compile-Time optimizations for production
+panic = "abort"         # Simplify the panic handlink
 
 [dependencies]
 glium = "*"
