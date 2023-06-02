@@ -30,7 +30,8 @@ impl Model {
         let view_direction = [-3.0, -1.0, 1.0];
         let up = [0.0, 1.0, 0.0];
         let input = std::fs::read(file_name)?;
-        let object = obj::load_obj(input.as_slice())?;
+        let rh_object = obj::load_obj(input.as_slice())?;
+        let object = to_left_handed(rh_object);
         Ok(Self { changed: true, object, scaling_factor, rot, view_position, view_direction, up })
     }
 
@@ -131,4 +132,30 @@ impl Model {
         self.scaling_factor /= 2.0;
         self.changed = true;
     }
+}
+
+/// Creates a new Obj for the left handed GL universe. The obj files seems to be right handed. As
+/// OpenGL is left handed, a conversion must take place, to make sure, that we see no mirrored
+/// ojbects. To convert from righthanded to left handed for each coordinate, we have to negate the
+/// z-axis.
+///
+/// This is exactly the result of negating the y-axis and a rotation around the x-axis by Pi.
+///
+/// # Arguments
+///
+/// * 'obj' - The object to convert.
+fn to_left_handed(obj: Obj) -> Obj {
+    let name = obj.name.clone();
+    let indices = obj.indices.clone();
+    let mut vertices = Vec::new();
+
+    for v in obj.vertices {
+        vertices.push(Vertex {
+            position: [v.position[0], v.position[1], -v.position[2]],
+            normal: [v.normal[0], v.normal[1], -v.normal[2]],
+        });
+    }
+
+    // Rotate by Pi
+    Obj { name, vertices, indices }
 }
