@@ -144,6 +144,12 @@ fn handle_keyboard_event(control_flow: &mut ControlFlow, model: &mut Model, inpu
                 VirtualKeyCode::E => model.roll_down(),
                 VirtualKeyCode::Minus => model.scale_down(),
                 VirtualKeyCode::Equals => model.scale_up(),
+                VirtualKeyCode::Down => model.move_x_pos(),
+                VirtualKeyCode::Up => model.move_x_neg(),
+                VirtualKeyCode::PageUp => model.move_y_pos(),
+                VirtualKeyCode::PageDown => model.move_y_neg(),
+                VirtualKeyCode::Left => model.move_z_neg(),
+                VirtualKeyCode::Right => model.move_z_pos(),
                 _ => {}
             }
 

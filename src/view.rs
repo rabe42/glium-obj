@@ -26,12 +26,13 @@ impl View {
             let mut target = display.draw();
             target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-            let model_matrix = model_matrix(&model.rot, model.scaling_factor);
+            let model_matrix = model_matrix(&model);
             let view = view_matrix(&model.view_position,
                                    &model.view_direction,
                                    &model.up);
             let (width, height) = target.get_dimensions();
             let perspective = perspective_matrix(width, height);
+            let offset: [f32; 3] = model.object_position.into();
 
             let light = [1.4, 0.4, -0.7f32];
 
@@ -48,7 +49,7 @@ impl View {
             target.draw(&self.positions,
                         &self.indices,
                         &self.program,
-                        &uniform! { model: model_matrix, view: view, perspective: perspective, u_light: light },
+                        &uniform! { model: model_matrix, offset: offset, view: view, perspective: perspective, u_light: light },
                         &params).unwrap();
             target.finish().unwrap();
         }
@@ -57,8 +58,10 @@ impl View {
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.
-fn model_matrix(rot: &[f32], sf: f32) -> [[f32; 4]; 4]
+fn model_matrix(model: &Model) -> [[f32; 4]; 4]
 {
+    let rot = model.rot;
+    let sf = model.scaling_factor;
     let mut final_matrix = Matrix4::from_euler_angles(rot[0], rot[1], rot[2]).append_scaling(sf);
     final_matrix[(2, 3)] = 2.0;
     log::trace!("The final matrix is: {final_matrix}");

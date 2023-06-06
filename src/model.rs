@@ -1,3 +1,4 @@
+use nalgebra::Vector3;
 use obj::Obj;
 
 /// The vertical increment
@@ -5,6 +6,9 @@ const VERTICAL_INCR: f32 = 0.1;
 
 // The increment, we allow to rotate the object in RAD.
 const ROTATION_INCR: f32 = std::f32::consts::PI / 20.0;
+
+// The increment by which the object will be moved along one axis.
+const MOVE_INCR: f32 = 1.00;
 
 pub type Vertex = obj::Vertex;
 
@@ -16,6 +20,7 @@ pub struct Model {
     pub object: Obj,
     pub scaling_factor: f32,
     pub rot: [f32; 3],
+    pub object_position: Vector3<f32>,
     pub view_position: [f32; 3],
     pub view_direction: [f32; 3],
     pub up: [f32; 3],
@@ -31,8 +36,9 @@ impl Model {
         let up = [0.0, 1.0, 0.0];
         let input = std::fs::read(file_name)?;
         let rh_object = obj::load_obj(input.as_slice())?;
-        let object = to_left_handed(rh_object);
-        Ok(Self { changed: true, object, scaling_factor, rot, view_position, view_direction, up })
+        let object = to_left_handed(&rh_object);
+        let object_position = Vector3::from([0.0, 0.0, 0.0]);
+        Ok(Self { changed: true, object, scaling_factor, rot, object_position, view_position, view_direction, up })
     }
 
     pub fn reset_changed(&mut self) {
@@ -132,6 +138,36 @@ impl Model {
         self.scaling_factor /= 2.0;
         self.changed = true;
     }
+
+    pub fn move_x_pos(&mut self) {
+        self.object_position[0] += MOVE_INCR;
+        self.changed = true;
+    }
+
+    pub fn move_x_neg(&mut self) {
+        self.object_position[0] -= MOVE_INCR;
+        self.changed = true;
+    }
+
+    pub fn move_y_pos(&mut self) {
+        self.object_position[1] += MOVE_INCR;
+        self.changed = true;
+    }
+
+    pub fn move_y_neg(&mut self) {
+        self.object_position[1] -= MOVE_INCR;
+        self.changed = true;
+    }
+
+    pub fn move_z_pos(&mut self) {
+        self.object_position[2] += MOVE_INCR;
+        self.changed = true;
+    }
+
+    pub fn move_z_neg(&mut self) {
+        self.object_position[2] -= MOVE_INCR;
+        self.changed = true;
+    }
 }
 
 /// Creates a new Obj for the left handed GL universe. The obj files seems to be right handed. As
@@ -144,18 +180,17 @@ impl Model {
 /// # Arguments
 ///
 /// * 'obj' - The object to convert.
-fn to_left_handed(obj: Obj) -> Obj {
+fn to_left_handed(obj: &Obj) -> Obj {
     let name = obj.name.clone();
     let indices = obj.indices.clone();
     let mut vertices = Vec::new();
 
-    for v in obj.vertices {
+    for v in &obj.vertices {
         vertices.push(Vertex {
             position: [v.position[0], v.position[1], -v.position[2]],
             normal: [v.normal[0], v.normal[1], -v.normal[2]],
         });
     }
 
-    // Rotate by Pi
     Obj { name, vertices, indices }
 }
