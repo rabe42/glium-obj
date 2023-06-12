@@ -32,10 +32,10 @@ fn main() {
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     let mut model = Model::new(&obj_file_name).expect("Cannot read object file!");
-    let view = View::new(&display, &model);
+    let mut view = View::new(&display, &model);
 
     event_loop.run(move |event, _, control_flow| {
-        run(&display, &mut model, &view, &event, control_flow);
+        run(&display, &mut model, &mut view, &event, control_flow);
     });
 }
 
@@ -51,7 +51,7 @@ fn main() {
 /// * 'control_flow' - A glutin specific object, which is basically used to end the application.
 fn run<T>(display: &Display,
           model: &mut Model,
-          view: &View,
+          view: &mut View,
           event: &Event<T>,
           control_flow: &mut ControlFlow)
 {

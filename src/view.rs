@@ -1,11 +1,13 @@
 use crate::model::{Model, Vertex};
 use glium::{Display, IndexBuffer, Program, Surface, VertexBuffer};
+use glium_glyph::{glyph_brush::{ab_glyph::FontRef, Section, Text, Layout, HorizontalAlign}, GlyphBrushBuilder, GlyphBrush};
 use nalgebra::Matrix4;
 
 pub struct View {
     positions: VertexBuffer<Vertex>,
     indices: IndexBuffer<u16>,
     program: Program,
+    glyph_brush: GlyphBrush<'static, FontRef<'static>>,
 }
 impl View {
     pub fn new(display: &Display, model: &Model) -> Self
@@ -18,43 +20,115 @@ impl View {
 
         let program = glium::Program::from_source(display, vertex_shader_src, fragment_shader_src,
                                                   None).unwrap();
-        Self { positions, indices, program }
+
+        let dejavu: &[u8] = include_bytes!("../fonts/NotoMonoNerdFontMono-Regular.ttf");
+        let dejavu_font = FontRef::try_from_slice(dejavu).unwrap();
+
+        let glyph_brush = GlyphBrushBuilder::using_font(dejavu_font).build(display);
+
+        Self { positions, indices, program, glyph_brush }
     }
 
-    pub fn draw(&self, display: &Display, model: &Model) {
+    pub fn draw(&mut self, display: &Display, model: &Model) {
         if model.has_changed() {
-            let mut target = display.draw();
-            target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-
-            let model_matrix = model_matrix(&model);
-            let view = view_matrix(&model.view_position,
-                                   &model.view_direction,
-                                   &model.up);
-            let (width, height) = target.get_dimensions();
-            let perspective = perspective_matrix(width, height);
-            let offset: [f32; 3] = model.object_position.into();
-
-            let light = [1.4, 0.4, -0.7f32];
-
-            let params = glium::DrawParameters {
-                depth: glium::Depth {
-                    test: glium::draw_parameters::DepthTest::IfLess,
-                    write: true,
-                    .. Default::default()
-                },
-                //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
-                .. Default::default()
-            };
-
-            target.draw(&self.positions,
-                        &self.indices,
-                        &self.program,
-                        &uniform! { model: model_matrix, offset: offset, view: view, perspective: perspective, u_light: light },
-                        &params).unwrap();
-            target.finish().unwrap();
+            self.draw_object(display, model);
+            self.draw_head_up_display(display, model);
         }
     }
 
+    fn draw_object(&self, display: &Display, model: &Model) {
+        let mut target = display.draw();
+        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+
+        let model_matrix = model_matrix(&model);
+        let view = view_matrix(&model.view_position,
+                               &model.view_direction,
+                               &model.up);
+        let (width, height) = target.get_dimensions();
+        let perspective = perspective_matrix(width, height);
+        let offset: [f32; 3] = model.object_position.into();
+
+        let light = [1.4, 0.4, -0.7f32];
+
+        let params = glium::DrawParameters {
+            depth: glium::Depth {
+                test: glium::draw_parameters::DepthTest::IfLess,
+                write: true,
+                .. Default::default()
+            },
+            //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockWise,
+            .. Default::default()
+        };
+
+        target.draw(&self.positions,
+                    &self.indices,
+                    &self.program,
+                    &uniform! { model: model_matrix, offset: offset, view: view, perspective: perspective, u_light: light },
+                    &params).unwrap();
+        target.finish().unwrap();
+    }
+
+    fn draw_head_up_display(&mut self, display: &Display, model: &Model) {
+        let screen_dims = display.get_framebuffer_dimensions();
+        log::debug!("[View::draw_head_up_display()] screen_dims=({}, {})", screen_dims.0, screen_dims.1);
+
+        // Top Left Corner (Coordinates of the object)
+        let coordinates = format!("(x={}, y={}, z={})\n(rx={}, ry={}, rz={})",
+                                model.object_position[0], model.object_position[1], model.object_position[2],
+                                model.rot[0], model.rot[1], model.rot[2]);
+        self.glyph_brush.queue(
+            Section::default()
+                .add_text(Text::new(&coordinates).with_scale(18.0))
+                .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32 / 2.0)),
+        );
+
+        // Top Right Corner
+        let view_coordinates = format!("(x={}, y={}, z={})",
+                                model.view_position[0], model.view_position[1], model.view_position[2]);
+        self.glyph_brush.queue(
+            Section::default()
+                .add_text(Text::new(&view_coordinates).with_scale(18.0))
+                .with_screen_position((screen_dims.0 as f32, 0.0))
+                .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32))
+                .with_layout(Layout::default().h_align(HorizontalAlign::Right))
+            );
+
+        // Middle Chenter
+        // self.glyph_brush.queue(
+        //     Section::default()
+        //         .add_text(Text::new("This is in the middle of the screen").with_scale(48.0))
+        //         .with_screen_position((screen_dims.0 as f32 / 2.0, screen_dims.1 as f32 / 2.0))
+        //         .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32))
+        //         .with_layout(
+        //             Layout::default()
+        //                 .h_align(HorizontalAlign::Center)
+        //                 .v_align(VerticalAlign::Center),
+        //         )
+        // );
+
+        // Bottom Left Corner (One line only!)
+        let scaling_factor = format!("Scaling factor: {}", model.scaling_factor);
+        self.glyph_brush.queue(
+            Section::default()
+                .add_text(Text::new(&scaling_factor).with_scale(18.0))
+                .with_screen_position((0.0, screen_dims.1 as f32 - 19.0))
+            );
+
+        // Bottom Right Corner
+        let direction = format!("Direction ({}, {}, {})",
+                                model.view_direction[0], model.view_direction[1], model.view_direction[2]);
+        self.glyph_brush.queue(
+            Section::default()
+                .add_text(Text::new(&direction).with_scale(18.0))
+                .with_screen_position((screen_dims.0 as f32, screen_dims.1 as f32 - 19.0))
+                .with_layout(Layout::default().h_align(HorizontalAlign::Right))
+            );
+
+        let mut target = display.draw();
+        self.glyph_brush.draw_queued(display, &mut target);
+
+        target.finish().unwrap();
+    }
 }
 
 /// Transformation of the model size and rotation to the OpenGL 1x1x1 box.

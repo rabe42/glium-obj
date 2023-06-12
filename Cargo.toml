@@ -13,6 +13,7 @@ panic = "abort"         # Simplify the panic handlink
 
 [dependencies]
 glium = "*"
+glium-glyph = "*"
 log = "*"
 env_logger = "*"
 nalgebra = "*"
