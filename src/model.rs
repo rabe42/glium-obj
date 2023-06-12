@@ -41,6 +41,10 @@ impl Model {
         Ok(Self { changed: true, object, scaling_factor, rot, object_position, view_position, view_direction, up })
     }
 
+    pub fn changed(&mut self) {
+        self.changed = true;
+    }
+
     pub fn reset_changed(&mut self) {
         self.changed = false;
     }
@@ -60,113 +64,113 @@ impl Model {
     /// Move the viewers position up.
     pub fn view_position_up(&mut self) {
         self.view_position[1] += VERTICAL_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Move the viewers position down.
     pub fn view_position_down(&mut self) {
         self.view_position[1] -= VERTICAL_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Move the viewers position forward.
     pub fn view_position_forward(&mut self) {
         self.view_position[0] -= 0.2;
-        self.changed = true;
+        self.changed();
     }
 
     /// Move the viewers position backward.
     pub fn view_position_backward(&mut self) {
         self.view_position[0] += 0.2;
-        self.changed = true;
+        self.changed();
     }
 
     /// Move the viewers position to the left.
     pub fn view_position_left(&mut self) {
         self.view_position[2] += 0.2;
-        self.changed = true;
+        self.changed();
     }
 
     /// Move the viewers position to the right.
     pub fn view_position_right(&mut self) {
         self.view_position[2] -= 0.2;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rols the object up. This is a rotation around the X-Axis (Eula roll).
     pub fn roll_up(&mut self) {
         self.rot[0] += ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rols the object down. This is a rotation around the X-Axis (Eula roll).
     pub fn roll_down(&mut self) {
         self.rot[0] -= ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rotate the object to the left. This is a rotation around the Y-Axis (Eula pitch).
     pub fn rotate_left(&mut self) {
         self.rot[1] += ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rotate the object to the right. This is a rotation around the Y-Axis (Eula pitch).
     pub fn rotate_right(&mut self) {
         self.rot[1] -= ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rotate the object up. This is a rotation around the Z-Axis (Eula yaw).
     pub fn rotate_up(&mut self) {
         self.rot[2] += ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     /// Rotate the object to the right. This is a rotation around the Z-Axis (Eula yaw).
     pub fn rotate_down(&mut self) {
         self.rot[2] -= ROTATION_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn scale_up(&mut self) {
         self.scaling_factor *= 2.0;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn scale_down(&mut self) {
         self.scaling_factor /= 2.0;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_x_pos(&mut self) {
         self.object_position[0] += MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_x_neg(&mut self) {
         self.object_position[0] -= MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_y_pos(&mut self) {
         self.object_position[1] += MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_y_neg(&mut self) {
         self.object_position[1] -= MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_z_pos(&mut self) {
         self.object_position[2] += MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 
     pub fn move_z_neg(&mut self) {
         self.object_position[2] -= MOVE_INCR;
-        self.changed = true;
+        self.changed();
     }
 }
 

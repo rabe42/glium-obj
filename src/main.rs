@@ -87,6 +87,10 @@ fn handle_event<T>(event: &Event<T>, model: &mut Model, control_flow: &mut Contr
                 *control_flow = glutin::event_loop::ControlFlow::Exit;
                 return;
             },
+            glutin::event::WindowEvent::Resized(_) => {
+                model.changed();    // Ugly but, I think Ok in this unique case.
+                return;
+            }
             WindowEvent::KeyboardInput { input, .. } => {
                 log::debug!("KeyboardInput: {:?}", input);
                 handle_keyboard_event(control_flow, model, input);
