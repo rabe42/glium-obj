@@ -3,6 +3,7 @@ extern crate glium;
 
 mod model;
 mod view;
+mod hud;
 
 use model::Model;
 use view::View;

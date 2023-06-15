@@ -1,13 +1,14 @@
 use crate::model::{Model, Vertex};
-use glium::{Display, IndexBuffer, Program, Surface, VertexBuffer};
-use glium_glyph::{glyph_brush::{ab_glyph::FontRef, Section, Text, Layout, HorizontalAlign}, GlyphBrushBuilder, GlyphBrush};
+use crate::hud::HudView;
+
+use glium::{Display, IndexBuffer, Program, Surface, VertexBuffer, Frame};
 use nalgebra::Matrix4;
 
 pub struct View {
     positions: VertexBuffer<Vertex>,
     indices: IndexBuffer<u16>,
     program: Program,
-    glyph_brush: GlyphBrush<'static, FontRef<'static>>,
+    hud: HudView,
 }
 impl View {
     pub fn new(display: &Display, model: &Model) -> Self
@@ -21,23 +22,25 @@ impl View {
         let program = glium::Program::from_source(display, vertex_shader_src, fragment_shader_src,
                                                   None).unwrap();
 
-        let dejavu: &[u8] = include_bytes!("../fonts/NotoMonoNerdFontMono-Regular.ttf");
-        let dejavu_font = FontRef::try_from_slice(dejavu).unwrap();
+        // let dejavu: &[u8] = include_bytes!("../fonts/NotoMonoNerdFontMono-Regular.ttf");
+        // let dejavu_font = FontRef::try_from_slice(dejavu).unwrap();
 
-        let glyph_brush = GlyphBrushBuilder::using_font(dejavu_font).build(display);
+        // let glyph_brush = GlyphBrushBuilder::using_font(dejavu_font).build(display);
+        let hud = HudView::new(display);
 
-        Self { positions, indices, program, glyph_brush }
+        Self { positions, indices, program, hud }
     }
 
     pub fn draw(&mut self, display: &Display, model: &Model) {
         if model.has_changed() {
-            self.draw_object(display, model);
-            self.draw_head_up_display(display, model);
+            let mut target = display.draw();
+            self.draw_object(&mut target, model);
+            self.hud.draw(&mut target, display, model);
+            target.finish().unwrap();
         }
     }
 
-    fn draw_object(&self, display: &Display, model: &Model) {
-        let mut target = display.draw();
+    fn draw_object(&self, target: &mut Frame, model: &Model) {
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
         let model_matrix = model_matrix(&model);
@@ -65,69 +68,6 @@ impl View {
                     &self.program,
                     &uniform! { model: model_matrix, offset: offset, view: view, perspective: perspective, u_light: light },
                     &params).unwrap();
-        target.finish().unwrap();
-    }
-
-    fn draw_head_up_display(&mut self, display: &Display, model: &Model) {
-        let screen_dims = display.get_framebuffer_dimensions();
-        log::debug!("[View::draw_head_up_display()] screen_dims=({}, {})", screen_dims.0, screen_dims.1);
-
-        // Top Left Corner (Coordinates of the object)
-        let coordinates = format!("(x={}, y={}, z={})\n(rx={}, ry={}, rz={})",
-                                model.object_position[0], model.object_position[1], model.object_position[2],
-                                model.rot[0], model.rot[1], model.rot[2]);
-        self.glyph_brush.queue(
-            Section::default()
-                .add_text(Text::new(&coordinates).with_scale(18.0))
-                .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32 / 2.0)),
-        );
-
-        // Top Right Corner
-        let view_coordinates = format!("(x={}, y={}, z={})",
-                                model.view_position[0], model.view_position[1], model.view_position[2]);
-        self.glyph_brush.queue(
-            Section::default()
-                .add_text(Text::new(&view_coordinates).with_scale(18.0))
-                .with_screen_position((screen_dims.0 as f32, 0.0))
-                .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32))
-                .with_layout(Layout::default().h_align(HorizontalAlign::Right))
-            );
-
-        // Middle Chenter
-        // self.glyph_brush.queue(
-        //     Section::default()
-        //         .add_text(Text::new("This is in the middle of the screen").with_scale(48.0))
-        //         .with_screen_position((screen_dims.0 as f32 / 2.0, screen_dims.1 as f32 / 2.0))
-        //         .with_bounds((screen_dims.0 as f32, screen_dims.1 as f32))
-        //         .with_layout(
-        //             Layout::default()
-        //                 .h_align(HorizontalAlign::Center)
-        //                 .v_align(VerticalAlign::Center),
-        //         )
-        // );
-
-        // Bottom Left Corner (One line only!)
-        let scaling_factor = format!("Scaling factor: {}", model.scaling_factor);
-        self.glyph_brush.queue(
-            Section::default()
-                .add_text(Text::new(&scaling_factor).with_scale(18.0))
-                .with_screen_position((0.0, screen_dims.1 as f32 - 19.0))
-            );
-
-        // Bottom Right Corner
-        let direction = format!("Direction ({}, {}, {})",
-                                model.view_direction[0], model.view_direction[1], model.view_direction[2]);
-        self.glyph_brush.queue(
-            Section::default()
-                .add_text(Text::new(&direction).with_scale(18.0))
-                .with_screen_position((screen_dims.0 as f32, screen_dims.1 as f32 - 19.0))
-                .with_layout(Layout::default().h_align(HorizontalAlign::Right))
-            );
-
-        let mut target = display.draw();
-        self.glyph_brush.draw_queued(display, &mut target);
-
-        target.finish().unwrap();
     }
 }
 
